@@ -161,7 +161,12 @@ function generateTable(identifier, count=-1) {
             } else {
                 const id = ev.dataTransfer.getData('text');
                 const el = document.getElementById(id);
-                const drop_zone = ev.target;
+                let drop_zone = ev.target;
+                console.log(drop_zone, el);
+                if (ev.target != content) {
+                    // https://stackoverflow.com/a/27037567
+                    drop_zone = drop_zone.closest('td');
+                }
                 drop_zone.appendChild(el);
             }
         }, false);

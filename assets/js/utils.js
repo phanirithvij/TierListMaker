@@ -31,26 +31,42 @@ function toArray(array_like) {
 }
 
 function loadImageAndAddToDOM(file, stretch, cb) {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        let img = document.createElement('img');
-        img.src = e.target.result;
-        img.height = 128;
-        if (stretch)
-            img.width = 128;
-        img.setAttribute('id', stringToHash(img.src));
-        img.setAttribute('draggable', 'true');
+    let isVideo = file.type.startsWith('video/');
+    let isAudio = file.type.startsWith('audio/');
+    let isImage = file.type.startsWith('image/');
+    let media = document.createElement(isVideo ? 'video' : (isAudio ? 'audio':'img'));
+    if (isVideo) {
+        media.loop = true;
+        media.autoplay = true;
+        media.muted = true;
+    } else if (isAudio) {
+        media.controls = true;
+    }
+    // https://stackoverflow.com/a/4459419
+    media.src = URL.createObjectURL(file);
+    media.height = 128;
+    if (stretch)
+        media.width = 128;
+    let mediaId = stringToHash(media.src);
+    if (isImage) {
+        media.draggable = false;
+        let div = document.createElement('div');
+        div.appendChild(media);
+        div.style.display = 'inline-flex';
+        media = div;
+    }
+    media.style.verticalAlign = 'middle';
+    media.setAttribute('id', mediaId);
+    media.setAttribute('draggable', 'true');
 
-        img.addEventListener('click', (ev) => {
-            ev.target.parentElement.removeChild(ev.target);
-        });
-        img.addEventListener('dragstart', (ev) => {
-            ev.dataTransfer.setData('text/plain', ev.target.id);
-        });
+    media.addEventListener('click', (ev) => {
+        ev.target.parentElement.removeChild(ev.target);
+    });
+    media.addEventListener('dragstart', (ev) => {
+        ev.dataTransfer.setData('text/plain', ev.target.id);
+    });
 
-        cb(img);
-    };
-    reader.readAsDataURL(file);
+    cb(media);
 }
 
 function preventDefault(ev) {
